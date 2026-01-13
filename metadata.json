@@ -1,0 +1,5 @@
+{
+  "name": "Balança de Pessoas",
+  "description": "Uma ferramenta de comparação que utiliza IA para analisar os prós e contras de duas opções, ajudando na tomada de decisões.",
+  "requestFramePermissions": []
+}
