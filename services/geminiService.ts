@@ -2,13 +2,18 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult } from '../types';
 
-const API_KEY = process.env.API_KEY;
+let ai: GoogleGenAI | null = null;
 
-if (!API_KEY) {
-    throw new Error("API_KEY environment variable not set");
+function getAiClient(): GoogleGenAI {
+  if (!ai) {
+    const API_KEY = process.env.API_KEY;
+    if (!API_KEY) {
+      throw new Error("A variável de ambiente API_KEY não está configurada.");
+    }
+    ai = new GoogleGenAI({ apiKey: API_KEY });
+  }
+  return ai;
 }
-
-const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 const responseSchema = {
   type: Type.OBJECT,
@@ -35,7 +40,8 @@ const responseSchema = {
 
 export const fetchComparison = async (itemA: string, itemB: string): Promise<AnalysisResult> => {
   try {
-    const response = await ai.models.generateContent({
+    const genAI = getAiClient();
+    const response = await genAI.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: `Compare de forma detalhada as seguintes duas opções: \n\nOpção A: "${itemA}"\n\nOpção B: "${itemB}"`,
       config: {
@@ -55,6 +61,9 @@ export const fetchComparison = async (itemA: string, itemB: string): Promise<Ana
 
   } catch (error) {
     console.error("Erro ao chamar a API Gemini:", error);
+    if (error instanceof Error) {
+        throw new Error(`Não foi possível obter a análise: ${error.message}`);
+    }
     throw new Error("Não foi possível obter a análise. Verifique sua conexão ou tente novamente mais tarde.");
   }
 };
